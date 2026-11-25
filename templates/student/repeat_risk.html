@@ -1,0 +1,134 @@
+{% extends 'base.html' %}
+{% block title %}Repeat Risk{% endblock %}
+{% block page_title %}Repeat Risk Analysis{% endblock %}
+{% block page_sub %}AI-powered analysis of your subject standing{% endblock %}
+
+{% block sidebar_nav %}
+<div class="nav-section">
+    <div class="nav-section-title">Main</div>
+    <a href="{{ url_for('student.dashboard') }}" class="nav-link"><span class="icon">🏠</span> Dashboard</a>
+    <a href="{{ url_for('student.timetable') }}" class="nav-link"><span class="icon">🗓️</span> My Timetable</a>
+    <a href="{{ url_for('student.repeat_risk') }}" class="nav-link active"><span class="icon">⚠️</span> Repeat Risk</a>
+</div>
+{% endblock %}
+
+{% block content %}
+
+<!-- Status Summary -->
+<div class="stats-grid" style="margin-bottom:28px;">
+    {% set clear = risk_data|selectattr('attainment.status','equalto','Clear')|list|length %}
+    {% set risk = risk_data|selectattr('attainment.status','equalto','At Risk')|list|length %}
+    {% set repeat = risk_data|selectattr('attainment.status','equalto','Repeat')|list|length %}
+    <div class="stat-card" style="--accent:linear-gradient(90deg,#10b981,#06b6d4)">
+        <div class="stat-icon">✅</div>
+        <div class="stat-num">{{ clear }}</div>
+        <div class="stat-label">Clear Subjects</div>
+    </div>
+    <div class="stat-card" style="--accent:linear-gradient(90deg,#f59e0b,#f97316)">
+        <div class="stat-icon">⚠️</div>
+        <div class="stat-num">{{ risk }}</div>
+        <div class="stat-label">At Risk</div>
+    </div>
+    <div class="stat-card" style="--accent:linear-gradient(90deg,#ef4444,#ec4899)">
+        <div class="stat-icon">❌</div>
+        <div class="stat-num">{{ repeat }}</div>
+        <div class="stat-label">Must Repeat</div>
+    </div>
+</div>
+
+{% for rd in risk_data %}
+{% set status = rd.attainment.status %}
+<div class="card" style="margin-bottom:20px;position:relative;overflow:hidden;">
+    <div style="position:absolute;top:0;left:0;right:0;height:3px;background:
+        {% if status == 'Clear' %}linear-gradient(90deg,#10b981,#06b6d4)
+        {% elif status == 'At Risk' %}linear-gradient(90deg,#f59e0b,#f97316)
+        {% else %}linear-gradient(90deg,#ef4444,#ec4899){% endif %};"></div>
+
+    <!-- Course Header -->
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:16px;">
+        <div>
+            <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
+                <span class="badge badge-purple">{{ rd.course.code }}</span>
+                <strong style="color:#fff;font-size:16px;">{{ rd.course.name }}</strong>
+            </div>
+            <div style="font-size:12px;color:rgba(255,255,255,0.35);">{{ rd.course.semester }} • 👨‍🏫 {{ rd.course.teacher.name }}</div>
+        </div>
+        <div style="text-align:right;">
+            <div style="font-size:28px;font-weight:800;color:#fff;">{{ rd.attainment.percentage }}%</div>
+            <div style="font-size:11px;color:rgba(255,255,255,0.35);">overall attainment</div>
+        </div>
+    </div>
+
+    <!-- Status Banner -->
+    {% if status == 'Clear' %}
+    <div style="background:rgba(16,185,129,0.08);border:1px solid rgba(16,185,129,0.2);border-radius:10px;padding:14px 18px;margin-bottom:16px;display:flex;gap:12px;align-items:flex-start;">
+        <span style="font-size:20px;">✅</span>
+        <div>
+            <div style="font-size:13px;font-weight:700;color:#6ee7b7;margin-bottom:4px;">Clear – Good Standing</div>
+            <div style="font-size:12px;color:rgba(255,255,255,0.5);">Your attainment is above the required threshold. Keep up the good work!</div>
+        </div>
+    </div>
+    {% elif status == 'At Risk' %}
+    <div style="background:rgba(245,158,11,0.08);border:1px solid rgba(245,158,11,0.2);border-radius:10px;padding:14px 18px;margin-bottom:16px;display:flex;gap:12px;align-items:flex-start;">
+        <span style="font-size:20px;">⚠️</span>
+        <div>
+            <div style="font-size:13px;font-weight:700;color:#fcd34d;margin-bottom:4px;">At Risk – Needs Improvement</div>
+            <div style="font-size:12px;color:rgba(255,255,255,0.5);">Your attainment is between 40–50%. You need to improve your performance to avoid repeating this subject. Focus on weak CLOs below.</div>
+        </div>
+    </div>
+    {% elif status == 'Repeat' %}
+    <div style="background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.2);border-radius:10px;padding:14px 18px;margin-bottom:16px;display:flex;gap:12px;align-items:flex-start;">
+        <span style="font-size:20px;">❌</span>
+        <div>
+            <div style="font-size:13px;font-weight:700;color:#fca5a5;margin-bottom:4px;">Must Repeat This Subject</div>
+            <div style="font-size:12px;color:rgba(255,255,255,0.5);">Your overall attainment has fallen below 40%. This subject will need to be repeated. Please consult your teacher or department advisor.</div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- CLO Breakdown -->
+    <div style="font-size:12px;font-weight:700;color:rgba(255,255,255,0.4);text-transform:uppercase;letter-spacing:0.8px;margin-bottom:12px;">CLO Breakdown</div>
+    <div class="table-wrap">
+        <table>
+            <thead>
+                <tr><th>CLO</th><th>Description</th><th>Your Attainment</th><th>Status</th><th>Action Needed</th></tr>
+            </thead>
+            <tbody>
+                {% for cr in rd.clo_results %}
+                <tr>
+                    <td><span class="badge badge-purple">{{ cr.clo.clo_code }}</span></td>
+                    <td style="max-width:250px;">{{ cr.clo.description }}</td>
+                    <td><strong style="color:#fff;">{{ cr.attainment.percentage }}%</strong></td>
+                    <td>
+                        {% if cr.attainment.level == 'Excellent' %}<span class="badge badge-green">Excellent</span>
+                        {% elif cr.attainment.level == 'Good' %}<span class="badge badge-blue">Good</span>
+                        {% elif cr.attainment.level == 'Average' %}<span class="badge badge-yellow">Average</span>
+                        {% elif cr.attainment.level == 'Poor' %}<span class="badge badge-red">Poor</span>
+                        {% else %}<span style="color:rgba(255,255,255,0.25);font-size:12px;">No data</span>{% endif %}
+                    </td>
+                    <td style="font-size:12px;">
+                        {% if cr.attainment.level == 'Poor' %}
+                        <span style="color:#fca5a5;">Immediate attention required</span>
+                        {% elif cr.attainment.level == 'Average' %}
+                        <span style="color:#fcd34d;">Additional practice needed</span>
+                        {% elif cr.attainment.level in ['Good','Excellent'] %}
+                        <span style="color:#6ee7b7;">Keep it up</span>
+                        {% else %}
+                        <span style="color:rgba(255,255,255,0.25);">Awaiting marks</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endfor %}
+
+{% if not risk_data %}
+<div class="empty">
+    <div class="empty-icon">📊</div>
+    <p>No enrolled courses found.</p>
+</div>
+{% endif %}
+{% endblock %}

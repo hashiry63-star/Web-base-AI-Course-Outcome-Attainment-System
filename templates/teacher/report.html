@@ -1,0 +1,108 @@
+{% extends 'base.html' %}
+{% block title %}Attainment Report{% endblock %}
+{% block page_title %}Attainment Report{% endblock %}
+{% block page_sub %}{{ course.name }} ({{ course.code }}) – {{ course.semester }}{% endblock %}
+
+{% block sidebar_nav %}
+<div class="nav-section">
+    <div class="nav-section-title">Main</div>
+    <a href="{{ url_for('teacher.dashboard') }}" class="nav-link"><span class="icon">🏠</span> Dashboard</a>
+    <a href="{{ url_for('teacher.timetable') }}" class="nav-link"><span class="icon">🗓️</span> My Timetable</a>
+</div>
+<div class="nav-section">
+    <div class="nav-section-title">This Course</div>
+    <a href="{{ url_for('teacher.course_detail', course_id=course.id) }}" class="nav-link"><span class="icon">🎯</span> CLOs & Marks</a>
+    <a href="{{ url_for('teacher.outline', course_id=course.id) }}" class="nav-link"><span class="icon">📖</span> Course Outline</a>
+    <a href="{{ url_for('teacher.report', course_id=course.id) }}" class="nav-link active"><span class="icon">📊</span> Attainment Report</a>
+</div>
+{% endblock %}
+
+{% block topbar_actions %}
+<button onclick="window.print()" class="btn btn-primary">🖨 Print</button>
+{% endblock %}
+
+{% block content %}
+<!-- Overall -->
+<div class="stats-grid" style="margin-bottom:24px;">
+    <div class="stat-card">
+        <div class="stat-icon">📊</div>
+        <div class="stat-num">{{ overall.percentage }}%</div>
+        <div class="stat-label">Overall Attainment</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon">🎯</div>
+        <div class="stat-num">{{ course.clos|length }}</div>
+        <div class="stat-label">CLOs</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon">
+            {% if overall.status == 'Clear' %}✅
+            {% elif overall.status == 'At Risk' %}⚠️
+            {% else %}❌{% endif %}
+        </div>
+        <div class="stat-num" style="font-size:20px;">{{ overall.status }}</div>
+        <div class="stat-label">Course Status</div>
+    </div>
+</div>
+
+<!-- Chart -->
+{% if chart_img %}
+<div class="card" style="margin-bottom:24px;">
+    <div class="card-title" style="margin-bottom:16px;">CLO Attainment Overview</div>
+    <img src="data:image/png;base64,{{ chart_img }}" style="width:100%;border-radius:8px;">
+</div>
+{% endif %}
+
+<!-- CLO Table -->
+<div class="card" style="margin-bottom:24px;">
+    <div class="card-title" style="margin-bottom:16px;">CLO Detailed Results</div>
+    <div class="table-wrap">
+        <table>
+            <thead>
+                <tr><th>CLO</th><th>Description</th><th>Mapped PLO</th><th>Attainment</th><th>Level</th><th>Passed/Total</th></tr>
+            </thead>
+            <tbody>
+                {% for cd in clo_data %}
+                <tr>
+                    <td><span class="badge badge-purple">{{ cd.clo.clo_code }}</span></td>
+                    <td>{{ cd.clo.description }}</td>
+                    <td>{% for m in cd.clo.plo_mappings %}<span class="badge badge-blue">{{ m.plo.plo_code }}</span>{% endfor %}</td>
+                    <td><strong style="color:#fff;">{{ cd.attainment.percentage }}%</strong></td>
+                    <td>
+                        {% if cd.attainment.level == 'Excellent' %}<span class="badge badge-green">{{ cd.attainment.level }}</span>
+                        {% elif cd.attainment.level == 'Good' %}<span class="badge badge-blue">{{ cd.attainment.level }}</span>
+                        {% elif cd.attainment.level == 'Average' %}<span class="badge badge-yellow">{{ cd.attainment.level }}</span>
+                        {% elif cd.attainment.level == 'Poor' %}<span class="badge badge-red">{{ cd.attainment.level }}</span>
+                        {% else %}<span class="badge badge-red">No Data</span>{% endif %}
+                    </td>
+                    <td>{{ cd.attainment.passed }}/{{ cd.attainment.total }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Recommendations -->
+<div class="card">
+    <div class="card-title" style="margin-bottom:16px;">🤖 AI Recommendations</div>
+    {% for cd in clo_data %}
+    {% if cd.attainment.percentage < 60 and cd.attainment.level != 'No Data' %}
+    <div style="display:flex;gap:12px;align-items:flex-start;padding:14px;background:rgba(239,68,68,0.05);border:1px solid rgba(239,68,68,0.15);border-radius:10px;margin-bottom:10px;">
+        <span style="font-size:18px;">⚠️</span>
+        <div style="font-size:13px;color:rgba(255,255,255,0.7);line-height:1.6;">
+            <strong style="color:#fca5a5;">{{ cd.clo.clo_code }}:</strong>
+            Attainment is {{ cd.attainment.level }} ({{ cd.attainment.percentage }}%).
+            Recommend additional tutorials and revision sessions to improve student performance on this outcome.
+        </div>
+    </div>
+    {% endif %}
+    {% endfor %}
+    {% if clo_data|selectattr('attainment.percentage','lt',60)|list|length == 0 %}
+    <div style="display:flex;gap:12px;align-items:flex-start;padding:14px;background:rgba(16,185,129,0.05);border:1px solid rgba(16,185,129,0.15);border-radius:10px;">
+        <span style="font-size:18px;">✅</span>
+        <div style="font-size:13px;color:rgba(255,255,255,0.7);">All CLOs show satisfactory or better attainment. Continue current teaching methodology.</div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

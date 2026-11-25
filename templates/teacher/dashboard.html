@@ -1,0 +1,71 @@
+{% extends 'base.html' %}
+{% block title %}Teacher Dashboard{% endblock %}
+{% block page_title %}My Courses{% endblock %}
+{% block page_sub %}Manage your courses and track attainment{% endblock %}
+
+{% block sidebar_nav %}
+<div class="nav-section">
+    <div class="nav-section-title">Main</div>
+    <a href="{{ url_for('teacher.dashboard') }}" class="nav-link active"><span class="icon">🏠</span> Dashboard</a>
+    <a href="{{ url_for('teacher.timetable') }}" class="nav-link"><span class="icon">🗓️</span> My Timetable</a>
+</div>
+{% endblock %}
+
+{% block content %}
+{% if course_data %}
+<div class="grid-3" style="margin-bottom:28px;">
+    <div class="stat-card">
+        <div class="stat-icon">📚</div>
+        <div class="stat-num">{{ course_data|length }}</div>
+        <div class="stat-label">My Courses</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon">👨‍🎓</div>
+        <div class="stat-num">{{ course_data|sum(attribute='students') }}</div>
+        <div class="stat-label">Total Students</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon">🎯</div>
+        <div class="stat-num">
+            {% set total = namespace(val=0) %}
+            {% for cd in course_data %}{% set total.val = total.val + cd.course.clos|length %}{% endfor %}
+            {{ total.val }}
+        </div>
+        <div class="stat-label">Total CLOs</div>
+    </div>
+</div>
+
+<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:20px;">
+    {% for cd in course_data %}
+    <div class="card" style="position:relative;overflow:hidden;">
+        <div style="position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,#6366f1,#8b5cf6);"></div>
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:16px;">
+            <div>
+                <span class="badge badge-purple" style="margin-bottom:8px;">{{ cd.course.code }}</span>
+                <div style="font-size:17px;font-weight:700;color:#fff;">{{ cd.course.name }}</div>
+                <div style="font-size:12px;color:rgba(255,255,255,0.35);margin-top:4px;">{{ cd.course.semester }}</div>
+            </div>
+            <div style="text-align:right;">
+                <div style="font-size:24px;font-weight:800;color:#fff;">{{ cd.attainment.percentage }}%</div>
+                <div style="font-size:11px;color:rgba(255,255,255,0.35);">attainment</div>
+            </div>
+        </div>
+        <div style="display:flex;gap:12px;margin-bottom:16px;">
+            <div style="font-size:12px;color:rgba(255,255,255,0.4);">👨‍🎓 {{ cd.students }} students</div>
+            <div style="font-size:12px;color:rgba(255,255,255,0.4);">🎯 {{ cd.course.clos|length }} CLOs</div>
+        </div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;">
+            <a href="{{ url_for('teacher.course_detail', course_id=cd.course.id) }}" class="btn btn-primary btn-sm">Manage</a>
+            <a href="{{ url_for('teacher.outline', course_id=cd.course.id) }}" class="btn btn-secondary btn-sm">Outline</a>
+            <a href="{{ url_for('teacher.report', course_id=cd.course.id) }}" class="btn btn-success btn-sm">Report</a>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<div class="empty">
+    <div class="empty-icon">📚</div>
+    <p>No courses assigned to you yet. Contact admin.</p>
+</div>
+{% endif %}
+{% endblock %}

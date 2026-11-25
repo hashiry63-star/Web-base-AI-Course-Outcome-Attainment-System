@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login – USP Attainment System</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Inter', sans-serif;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+            display: flex; align-items: center; justify-content: center;
+        }
+        .card {
+            background: rgba(255,255,255,0.05);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 24px; padding: 48px 40px; width: 420px;
+            box-shadow: 0 25px 50px rgba(0,0,0,0.4);
+        }
+        .badge {
+            display: inline-block;
+            background: rgba(99,102,241,0.2);
+            border: 1px solid rgba(99,102,241,0.4);
+            color: #a5b4fc; font-size: 12px; font-weight: 500;
+            padding: 4px 12px; border-radius: 20px; margin-bottom: 20px;
+        }
+        h1 { color: #fff; font-size: 28px; font-weight: 700; margin-bottom: 6px; }
+        .subtitle { color: rgba(255,255,255,0.45); font-size: 14px; margin-bottom: 36px; }
+        label { display: block; color: rgba(255,255,255,0.7); font-size: 13px; font-weight: 500; margin-bottom: 8px; }
+        input {
+            width: 100%; background: rgba(255,255,255,0.07);
+            border: 1px solid rgba(255,255,255,0.12);
+            border-radius: 12px; padding: 13px 16px;
+            color: #fff; font-size: 15px; font-family: 'Inter', sans-serif;
+            transition: all 0.2s; margin-bottom: 20px;
+        }
+        input:focus { outline: none; border-color: #6366f1; box-shadow: 0 0 0 3px rgba(99,102,241,0.15); }
+        input::placeholder { color: rgba(255,255,255,0.25); }
+        .btn {
+            width: 100%; background: linear-gradient(135deg, #6366f1, #8b5cf6);
+            color: white; border: none; border-radius: 12px;
+            padding: 14px; font-size: 15px; font-weight: 600;
+            cursor: pointer; font-family: 'Inter', sans-serif; transition: all 0.2s;
+        }
+        .btn:hover { transform: translateY(-1px); box-shadow: 0 8px 25px rgba(99,102,241,0.4); }
+        .error {
+            background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.3);
+            color: #fca5a5; padding: 12px 16px; border-radius: 10px;
+            font-size: 13px; margin-bottom: 20px;
+        }
+        .divider { border: none; border-top: 1px solid rgba(255,255,255,0.08); margin: 24px 0; }
+        .hints { display: flex; flex-direction: column; gap: 6px; }
+        .hint {
+            background: rgba(255,255,255,0.04); border-radius: 8px;
+            padding: 8px 14px; color: rgba(255,255,255,0.35); font-size: 11px;
+        }
+        .hint span { color: #a5b4fc; font-weight: 600; }
+        .footer { text-align: center; color: rgba(255,255,255,0.2); font-size: 12px; margin-top: 20px; }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <div class="badge">🎓 University of Southern Punjab</div>
+        <h1>Welcome Back</h1>
+        <p class="subtitle">Sign in to the CO Attainment System</p>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% for category, message in messages %}
+            <div class="error">⚠️ {{ message }}</div>
+            {% endfor %}
+        {% endwith %}
+
+        <form method="POST">
+            <label>Email Address</label>
+            <input type="email" name="email" placeholder="your@usp.edu.pk" required>
+            <label>Password</label>
+            <input type="password" name="password" placeholder="Enter your password" required>
+            <button type="submit" class="btn">Sign In →</button>
+        </form>
+
+        <hr class="divider">
+        <div class="hints">
+            <div class="hint">Admin: <span>admin@usp.edu.pk</span> / admin123</div>
+            <div class="hint">Teacher: <span>ahmed@usp.edu.pk</span> / teacher123</div>
+            <div class="hint">Student: <span>ali@student.usp.edu.pk</span> / student123</div>
+        </div>
+        <div class="footer">USP CO Attainment System • Multan</div>
+    </div>
+</body>
+</html>

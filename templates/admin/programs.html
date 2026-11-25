@@ -1,0 +1,103 @@
+{% extends 'base.html' %}
+{% block title %}Programs & PLOs{% endblock %}
+{% block page_title %}Programs & PLOs{% endblock %}
+{% block page_sub %}Manage degree programs and learning outcomes{% endblock %}
+
+{% block sidebar_nav %}
+<div class="nav-section">
+    <div class="nav-section-title">Main</div>
+    <a href="{{ url_for('admin.dashboard') }}" class="nav-link"><span class="icon">🏠</span> Dashboard</a>
+    <a href="{{ url_for('admin.teachers') }}" class="nav-link"><span class="icon">👨‍🏫</span> Teachers</a>
+    <a href="{{ url_for('admin.students') }}" class="nav-link"><span class="icon">👨‍🎓</span> Students</a>
+    <a href="{{ url_for('admin.programs') }}" class="nav-link active"><span class="icon">📋</span> Programs & PLOs</a>
+    <a href="{{ url_for('admin.courses') }}" class="nav-link"><span class="icon">📚</span> Courses & CLOs</a>
+    <a href="{{ url_for('admin.timetable') }}" class="nav-link"><span class="icon">🗓️</span> Timetable</a>
+    <a href="{{ url_for('admin.report') }}" class="nav-link"><span class="icon">📊</span> System Report</a>
+</div>
+{% endblock %}
+
+{% block topbar_actions %}
+<button class="btn btn-primary" onclick="openModal('addProgramModal')">+ Add Program</button>
+{% endblock %}
+
+{% block content %}
+{% if programs %}
+{% for program in programs %}
+<div class="card" style="margin-bottom:20px;">
+    <div class="card-header">
+        <div>
+            <div class="card-title">{{ program.name }}</div>
+            <div style="font-size:12px;color:rgba(255,255,255,0.35);margin-top:4px;">{{ program.plos|length }} Program Learning Outcomes</div>
+        </div>
+        <div style="display:flex;gap:8px;">
+            <button class="btn btn-success btn-sm" onclick="openModal('addPloModal{{ program.id }}')">+ Add PLO</button>
+            <form method="POST" action="{{ url_for('admin.delete_program', id=program.id) }}" onsubmit="return confirm('Delete this program?');" style="display:inline;">
+                <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+            </form>
+        </div>
+    </div>
+
+    {% if program.plos %}
+    <div class="table-wrap">
+        <table>
+            <thead>
+                <tr><th>Code</th><th>Description</th><th>Action</th></tr>
+            </thead>
+            <tbody>
+                {% for plo in program.plos %}
+                <tr>
+                    <td><span class="badge badge-purple">{{ plo.plo_code }}</span></td>
+                    <td>{{ plo.description }}</td>
+                    <td>
+                        <form method="POST" action="{{ url_for('admin.delete_plo', id=plo.id) }}" onsubmit="return confirm('Delete this PLO?');" style="display:inline;">
+                            <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="empty"><div class="empty-icon">🎯</div><p>No PLOs added yet</p></div>
+    {% endif %}
+</div>
+
+<!-- Add PLO Modal -->
+<div class="modal-overlay" id="addPloModal{{ program.id }}">
+    <div class="modal">
+        <button class="modal-close" onclick="closeModal('addPloModal{{ program.id }}')">✕</button>
+        <div class="modal-title">Add PLO to {{ program.name }}</div>
+        <form method="POST" action="{{ url_for('admin.add_plo', program_id=program.id) }}">
+            <div class="form-group">
+                <label class="form-label">PLO Code</label>
+                <input type="text" name="plo_code" class="form-control" placeholder="e.g. PLO1" required>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Description</label>
+                <textarea name="description" class="form-control" rows="3" placeholder="Describe this learning outcome..." required></textarea>
+            </div>
+            <button type="submit" class="btn btn-primary" style="width:100%">Add PLO</button>
+        </form>
+    </div>
+</div>
+{% endfor %}
+{% else %}
+<div class="empty"><div class="empty-icon">📋</div><p>No programs yet</p><button class="btn btn-primary" onclick="openModal('addProgramModal')">Add First Program</button></div>
+{% endif %}
+
+<!-- Add Program Modal -->
+<div class="modal-overlay" id="addProgramModal">
+    <div class="modal">
+        <button class="modal-close" onclick="closeModal('addProgramModal')">✕</button>
+        <div class="modal-title">Add New Program</div>
+        <form method="POST" action="{{ url_for('admin.add_program') }}">
+            <div class="form-group">
+                <label class="form-label">Program Name</label>
+                <input type="text" name="name" class="form-control" placeholder="e.g. Bachelor of Information Technology" required>
+            </div>
+            <button type="submit" class="btn btn-primary" style="width:100%">Add Program</button>
+        </form>
+    </div>
+</div>
+{% endblock %}

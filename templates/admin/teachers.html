@@ -1,0 +1,83 @@
+{% extends 'base.html' %}
+{% block title %}Manage Teachers{% endblock %}
+{% block page_title %}Teachers{% endblock %}
+{% block page_sub %}Manage faculty accounts{% endblock %}
+
+{% block sidebar_nav %}
+<div class="nav-section">
+    <div class="nav-section-title">Main</div>
+    <a href="{{ url_for('admin.dashboard') }}" class="nav-link"><span class="icon">🏠</span> Dashboard</a>
+    <a href="{{ url_for('admin.teachers') }}" class="nav-link active"><span class="icon">👨‍🏫</span> Teachers</a>
+    <a href="{{ url_for('admin.students') }}" class="nav-link"><span class="icon">👨‍🎓</span> Students</a>
+    <a href="{{ url_for('admin.programs') }}" class="nav-link"><span class="icon">📋</span> Programs & PLOs</a>
+    <a href="{{ url_for('admin.courses') }}" class="nav-link"><span class="icon">📚</span> Courses & CLOs</a>
+    <a href="{{ url_for('admin.timetable') }}" class="nav-link"><span class="icon">🗓️</span> Timetable</a>
+    <a href="{{ url_for('admin.report') }}" class="nav-link"><span class="icon">📊</span> System Report</a>
+</div>
+{% endblock %}
+
+{% block topbar_actions %}
+<button class="btn btn-primary" onclick="openModal('addTeacherModal')">+ Add Teacher</button>
+{% endblock %}
+
+{% block content %}
+<div class="card">
+    {% if teachers %}
+    <div class="table-wrap">
+        <table>
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Email</th>
+                    <th>Courses</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for teacher in teachers %}
+                <tr>
+                    <td>
+                        <div style="display:flex;align-items:center;gap:10px;">
+                            <div style="width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,#6366f1,#8b5cf6);display:flex;align-items:center;justify-content:center;font-weight:700;color:white;font-size:13px;">{{ teacher.name[0] }}</div>
+                            <strong style="color:#fff">{{ teacher.name }}</strong>
+                        </div>
+                    </td>
+                    <td>{{ teacher.email }}</td>
+                    <td><span class="badge badge-purple">{{ teacher.courses|length }} courses</span></td>
+                    <td>
+                        <form method="POST" action="{{ url_for('admin.delete_teacher', id=teacher.id) }}" onsubmit="return confirm('Delete this teacher?');" style="display:inline;">
+                            <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="empty"><div class="empty-icon">👨‍🏫</div><p>No teachers yet</p><button class="btn btn-primary" onclick="openModal('addTeacherModal')">Add First Teacher</button></div>
+    {% endif %}
+</div>
+
+<div class="modal-overlay" id="addTeacherModal">
+    <div class="modal">
+        <button class="modal-close" onclick="closeModal('addTeacherModal')">✕</button>
+        <div class="modal-title">Add New Teacher</div>
+        <form method="POST" action="{{ url_for('admin.add_teacher') }}">
+            <div class="form-group">
+                <label class="form-label">Full Name</label>
+                <input type="text" name="name" class="form-control" placeholder="Dr. Ahmed Khan" required>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Email</label>
+                <input type="email" name="email" class="form-control" placeholder="ahmed@usp.edu.pk" required>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Password</label>
+                <input type="password" name="password" class="form-control" placeholder="Set password" required>
+            </div>
+            <button type="submit" class="btn btn-primary" style="width:100%">Add Teacher</button>
+        </form>
+    </div>
+</div>
+{% endblock %}

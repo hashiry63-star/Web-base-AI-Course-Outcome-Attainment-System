@@ -1,0 +1,114 @@
+{% extends 'base.html' %}
+{% block title %}Manage Students{% endblock %}
+{% block page_title %}Students{% endblock %}
+{% block page_sub %}Manage student accounts and enrollments{% endblock %}
+
+{% block sidebar_nav %}
+<div class="nav-section">
+    <div class="nav-section-title">Main</div>
+    <a href="{{ url_for('admin.dashboard') }}" class="nav-link"><span class="icon">🏠</span> Dashboard</a>
+    <a href="{{ url_for('admin.teachers') }}" class="nav-link"><span class="icon">👨‍🏫</span> Teachers</a>
+    <a href="{{ url_for('admin.students') }}" class="nav-link active"><span class="icon">👨‍🎓</span> Students</a>
+    <a href="{{ url_for('admin.programs') }}" class="nav-link"><span class="icon">📋</span> Programs & PLOs</a>
+    <a href="{{ url_for('admin.courses') }}" class="nav-link"><span class="icon">📚</span> Courses & CLOs</a>
+    <a href="{{ url_for('admin.timetable') }}" class="nav-link"><span class="icon">🗓️</span> Timetable</a>
+    <a href="{{ url_for('admin.report') }}" class="nav-link"><span class="icon">📊</span> System Report</a>
+</div>
+{% endblock %}
+
+{% block topbar_actions %}
+<div style="display:flex;gap:10px;">
+    <button class="btn btn-success" onclick="openModal('enrollModal')">Enroll Student</button>
+    <button class="btn btn-primary" onclick="openModal('addStudentModal')">+ Add Student</button>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="card">
+    {% if students %}
+    <div class="table-wrap">
+        <table>
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Email</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for student in students %}
+                <tr>
+                    <td>
+                        <div style="display:flex;align-items:center;gap:10px;">
+                            <div style="width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,#10b981,#06b6d4);display:flex;align-items:center;justify-content:center;font-weight:700;color:white;font-size:13px;">{{ student.name[0] }}</div>
+                            <strong style="color:#fff">{{ student.name }}</strong>
+                        </div>
+                    </td>
+                    <td>{{ student.email }}</td>
+                    <td>
+                        <form method="POST" action="{{ url_for('admin.delete_student', id=student.id) }}" onsubmit="return confirm('Delete this student?');" style="display:inline;">
+                            <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="empty"><div class="empty-icon">👨‍🎓</div><p>No students yet</p><button class="btn btn-primary" onclick="openModal('addStudentModal')">Add First Student</button></div>
+    {% endif %}
+</div>
+
+<!-- Add Student Modal -->
+<div class="modal-overlay" id="addStudentModal">
+    <div class="modal">
+        <button class="modal-close" onclick="closeModal('addStudentModal')">✕</button>
+        <div class="modal-title">Add New Student</div>
+        <form method="POST" action="{{ url_for('admin.add_student') }}">
+            <div class="form-group">
+                <label class="form-label">Full Name</label>
+                <input type="text" name="name" class="form-control" placeholder="Ali Hassan" required>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Email</label>
+                <input type="email" name="email" class="form-control" placeholder="ali@student.usp.edu.pk" required>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Password</label>
+                <input type="password" name="password" class="form-control" placeholder="Set password" required>
+            </div>
+            <button type="submit" class="btn btn-primary" style="width:100%">Add Student</button>
+        </form>
+    </div>
+</div>
+
+<!-- Enroll Modal -->
+<div class="modal-overlay" id="enrollModal">
+    <div class="modal">
+        <button class="modal-close" onclick="closeModal('enrollModal')">✕</button>
+        <div class="modal-title">Enroll Student in Course</div>
+        <form method="POST" action="{{ url_for('admin.enroll_student') }}">
+            <div class="form-group">
+                <label class="form-label">Select Student</label>
+                <select name="student_id" class="form-control" required>
+                    <option value="">Choose student...</option>
+                    {% for student in students %}
+                    <option value="{{ student.id }}">{{ student.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Select Course</label>
+                <select name="course_id" class="form-control" required>
+                    <option value="">Choose course...</option>
+                    {% for course in courses %}
+                    <option value="{{ course.id }}">{{ course.name }} ({{ course.code }})</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <button type="submit" class="btn btn-primary" style="width:100%">Enroll Student</button>
+        </form>
+    </div>
+</div>
+{% endblock %}

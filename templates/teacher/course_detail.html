@@ -1,0 +1,102 @@
+{% extends 'base.html' %}
+{% block title %}{{ course.name }}{% endblock %}
+{% block page_title %}{{ course.name }}{% endblock %}
+{% block page_sub %}{{ course.code }} • {{ course.semester }} • {{ students|length }} students enrolled{% endblock %}
+
+{% block sidebar_nav %}
+<div class="nav-section">
+    <div class="nav-section-title">Main</div>
+    <a href="{{ url_for('teacher.dashboard') }}" class="nav-link"><span class="icon">🏠</span> Dashboard</a>
+    <a href="{{ url_for('teacher.timetable') }}" class="nav-link"><span class="icon">🗓️</span> My Timetable</a>
+</div>
+<div class="nav-section">
+    <div class="nav-section-title">This Course</div>
+    <a href="{{ url_for('teacher.course_detail', course_id=course.id) }}" class="nav-link active"><span class="icon">🎯</span> CLOs & Marks</a>
+    <a href="{{ url_for('teacher.outline', course_id=course.id) }}" class="nav-link"><span class="icon">📖</span> Course Outline</a>
+    <a href="{{ url_for('teacher.report', course_id=course.id) }}" class="nav-link"><span class="icon">📊</span> Attainment Report</a>
+</div>
+{% endblock %}
+
+{% block topbar_actions %}
+<a href="{{ url_for('teacher.report', course_id=course.id) }}" class="btn btn-primary">View Report</a>
+{% endblock %}
+
+{% block content %}
+{% for cd in clo_data %}
+<div class="card" style="margin-bottom:20px;">
+    <div class="card-header">
+        <div style="display:flex;align-items:center;gap:12px;">
+            <span class="badge badge-purple">{{ cd.clo.clo_code }}</span>
+            <div>
+                <div style="font-size:14px;font-weight:600;color:#fff;">{{ cd.clo.description }}</div>
+                {% for mapping in cd.clo.plo_mappings %}
+                <span class="badge badge-blue" style="margin-top:4px;">→ {{ mapping.plo.plo_code }}</span>
+                {% endfor %}
+            </div>
+        </div>
+        <div style="text-align:right;">
+            <div style="font-size:22px;font-weight:800;color:#fff;">{{ cd.attainment.percentage }}%</div>
+            {% if cd.attainment.level == 'Excellent' %}<span class="badge badge-green">{{ cd.attainment.level }}</span>
+            {% elif cd.attainment.level == 'Good' %}<span class="badge badge-blue">{{ cd.attainment.level }}</span>
+            {% elif cd.attainment.level == 'Average' %}<span class="badge badge-yellow">{{ cd.attainment.level }}</span>
+            {% elif cd.attainment.level == 'Poor' %}<span class="badge badge-red">{{ cd.attainment.level }}</span>
+            {% else %}<span class="badge badge-red">No Data</span>{% endif %}
+        </div>
+    </div>
+
+    {% if cd.clo.assessments %}
+    <div class="table-wrap" style="margin-bottom:12px;">
+        <table>
+            <thead>
+                <tr><th>Assessment</th><th>Max Marks</th><th>Threshold</th><th>Submissions</th><th>Action</th></tr>
+            </thead>
+            <tbody>
+                {% for assessment in cd.clo.assessments %}
+                <tr>
+                    <td style="color:#fff;font-weight:500;">{{ assessment.name }}</td>
+                    <td>{{ assessment.max_marks }}</td>
+                    <td>{{ assessment.threshold }}%</td>
+                    <td><span class="badge badge-green">{{ assessment.marks|length }} students</span></td>
+                    <td><a href="{{ url_for('teacher.marks', assessment_id=assessment.id) }}" class="btn btn-success btn-sm">Enter Marks</a></td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <p style="color:rgba(255,255,255,0.3);font-size:13px;margin-bottom:12px;">No assessments yet.</p>
+    {% endif %}
+
+    <button class="btn btn-secondary btn-sm" onclick="openModal('addAssessModal{{ cd.clo.id }}')">+ Add Assessment</button>
+</div>
+
+<div class="modal-overlay" id="addAssessModal{{ cd.clo.id }}">
+    <div class="modal">
+        <button class="modal-close" onclick="closeModal('addAssessModal{{ cd.clo.id }}')">✕</button>
+        <div class="modal-title">Add Assessment for {{ cd.clo.clo_code }}</div>
+        <form method="POST" action="{{ url_for('teacher.add_assessment', course_id=course.id, clo_id=cd.clo.id) }}">
+            <div class="form-group">
+                <label class="form-label">Assessment Name</label>
+                <input type="text" name="name" class="form-control" placeholder="e.g. Mid-Term Exam" required>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Maximum Marks</label>
+                <input type="number" name="max_marks" class="form-control" placeholder="e.g. 100" required>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Pass Threshold (%)</label>
+                <input type="number" name="threshold" class="form-control" value="50" min="0" max="100" required>
+            </div>
+            <button type="submit" class="btn btn-primary" style="width:100%">Add Assessment</button>
+        </form>
+    </div>
+</div>
+{% endfor %}
+
+{% if not clo_data %}
+<div class="empty">
+    <div class="empty-icon">🎯</div>
+    <p>No CLOs assigned to this course yet. Contact admin to add CLOs.</p>
+</div>
+{% endif %}
+{% endblock %}

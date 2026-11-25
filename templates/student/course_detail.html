@@ -1,0 +1,92 @@
+{% extends 'base.html' %}
+{% block title %}{{ course.name }}{% endblock %}
+{% block page_title %}{{ course.name }}{% endblock %}
+{% block page_sub %}{{ course.code }} • {{ course.semester }} • 👨‍🏫 {{ course.teacher.name }}{% endblock %}
+
+{% block sidebar_nav %}
+<div class="nav-section">
+    <div class="nav-section-title">Main</div>
+    <a href="{{ url_for('student.dashboard') }}" class="nav-link"><span class="icon">🏠</span> Dashboard</a>
+    <a href="{{ url_for('student.timetable') }}" class="nav-link"><span class="icon">🗓️</span> My Timetable</a>
+    <a href="{{ url_for('student.repeat_risk') }}" class="nav-link"><span class="icon">⚠️</span> Repeat Risk</a>
+</div>
+{% endblock %}
+
+{% block content %}
+{% for cd in clo_data %}
+<div class="card" style="margin-bottom:20px;">
+    <div class="card-header">
+        <div style="display:flex;align-items:center;gap:12px;">
+            <span class="badge badge-purple">{{ cd.clo.clo_code }}</span>
+            <div>
+                <div style="font-size:14px;font-weight:600;color:#fff;">{{ cd.clo.description }}</div>
+                {% for mapping in cd.clo.plo_mappings %}
+                <span class="badge badge-blue" style="margin-top:4px;">→ {{ mapping.plo.plo_code }}</span>
+                {% endfor %}
+            </div>
+        </div>
+        <div style="text-align:right;">
+            <div style="font-size:22px;font-weight:800;color:#fff;">{{ cd.attainment.percentage }}%</div>
+            {% if cd.attainment.level == 'Excellent' %}<span class="badge badge-green">{{ cd.attainment.level }}</span>
+            {% elif cd.attainment.level == 'Good' %}<span class="badge badge-blue">{{ cd.attainment.level }}</span>
+            {% elif cd.attainment.level == 'Average' %}<span class="badge badge-yellow">{{ cd.attainment.level }}</span>
+            {% elif cd.attainment.level == 'Poor' %}<span class="badge badge-red">{{ cd.attainment.level }}</span>
+            {% else %}<span style="color:rgba(255,255,255,0.3);font-size:12px;">No marks yet</span>{% endif %}
+        </div>
+    </div>
+
+    <!-- Assessment marks -->
+    {% if cd.assessment_marks %}
+    <div class="table-wrap">
+        <table>
+            <thead>
+                <tr><th>Assessment</th><th>Max Marks</th><th>Your Marks</th><th>Percentage</th><th>Status</th></tr>
+            </thead>
+            <tbody>
+                {% for am in cd.assessment_marks %}
+                <tr>
+                    <td style="color:#fff;font-weight:500;">{{ am.assessment.name }}</td>
+                    <td>{{ am.assessment.max_marks }}</td>
+                    <td>
+                        {% if am.mark %}
+                        <strong style="color:#fff;">{{ am.mark.marks_obtained }}</strong>
+                        {% else %}
+                        <span style="color:rgba(255,255,255,0.25);">Not entered</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if am.mark %}
+                        {% set pct = (am.mark.marks_obtained / am.assessment.max_marks * 100)|round(1) %}
+                        {{ pct }}%
+                        {% else %}–{% endif %}
+                    </td>
+                    <td>
+                        {% if am.mark %}
+                        {% set pct = (am.mark.marks_obtained / am.assessment.max_marks * 100) %}
+                        {% if pct >= am.assessment.threshold %}
+                        <span class="badge badge-green">Pass</span>
+                        {% else %}
+                        <span class="badge badge-red">Fail</span>
+                        {% endif %}
+                        {% else %}
+                        <span style="color:rgba(255,255,255,0.25);font-size:12px;">Pending</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <p style="color:rgba(255,255,255,0.3);font-size:13px;">No assessments added yet.</p>
+    {% endif %}
+</div>
+{% endfor %}
+
+{% if not clo_data %}
+<div class="empty">
+    <div class="empty-icon">🎯</div>
+    <p>No CLOs defined for this course yet.</p>
+</div>
+{% endif %}
+{% endblock %}

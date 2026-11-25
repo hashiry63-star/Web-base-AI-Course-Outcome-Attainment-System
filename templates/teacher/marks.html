@@ -1,0 +1,89 @@
+{% extends 'base.html' %}
+{% block title %}Enter Marks{% endblock %}
+{% block page_title %}{{ assessment.name }}{% endblock %}
+{% block page_sub %}{{ assessment.clo.clo_code }}: {{ assessment.clo.description }} • Max: {{ assessment.max_marks }} marks{% endblock %}
+
+{% block sidebar_nav %}
+<div class="nav-section">
+    <div class="nav-section-title">Main</div>
+    <a href="{{ url_for('teacher.dashboard') }}" class="nav-link"><span class="icon">🏠</span> Dashboard</a>
+    <a href="{{ url_for('teacher.timetable') }}" class="nav-link"><span class="icon">🗓️</span> My Timetable</a>
+</div>
+<div class="nav-section">
+    <div class="nav-section-title">This Course</div>
+    <a href="{{ url_for('teacher.course_detail', course_id=course.id) }}" class="nav-link"><span class="icon">🎯</span> CLOs & Marks</a>
+    <a href="{{ url_for('teacher.outline', course_id=course.id) }}" class="nav-link"><span class="icon">📖</span> Course Outline</a>
+    <a href="{{ url_for('teacher.report', course_id=course.id) }}" class="nav-link"><span class="icon">📊</span> Attainment Report</a>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header">
+        <div class="card-title">Student Marks Entry</div>
+        <span class="badge badge-purple">{{ students|length }} students</span>
+    </div>
+
+    {% if students %}
+    <form method="POST">
+        <div class="table-wrap">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Student</th>
+                        <th>Email</th>
+                        <th>Marks (out of {{ assessment.max_marks }})</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for student in students %}
+                    {% set current_mark = existing_marks.get(student.id, '') %}
+                    <tr>
+                        <td>
+                            <div style="display:flex;align-items:center;gap:10px;">
+                                <div style="width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,#10b981,#06b6d4);display:flex;align-items:center;justify-content:center;font-weight:700;color:white;font-size:12px;">{{ student.name[0] }}</div>
+                                <strong style="color:#fff;">{{ student.name }}</strong>
+                            </div>
+                        </td>
+                        <td style="color:rgba(255,255,255,0.4);">{{ student.email }}</td>
+                        <td>
+                            <input type="number"
+                                name="marks_{{ student.id }}"
+                                class="form-control"
+                                style="width:120px;"
+                                min="0"
+                                max="{{ assessment.max_marks }}"
+                                value="{{ current_mark }}"
+                                placeholder="0–{{ assessment.max_marks }}">
+                        </td>
+                        <td>
+                            {% if current_mark != '' %}
+                                {% set pct = (current_mark / assessment.max_marks * 100) %}
+                                {% if pct >= assessment.threshold %}
+                                <span class="badge badge-green">Pass</span>
+                                {% else %}
+                                <span class="badge badge-red">Fail</span>
+                                {% endif %}
+                            {% else %}
+                            <span style="color:rgba(255,255,255,0.25);font-size:12px;">Not entered</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        <div style="margin-top:20px;display:flex;gap:12px;">
+            <button type="submit" class="btn btn-primary">💾 Save All Marks</button>
+            <a href="{{ url_for('teacher.course_detail', course_id=course.id) }}" class="btn btn-secondary">Cancel</a>
+        </div>
+    </form>
+    {% else %}
+    <div class="empty">
+        <div class="empty-icon">👨‍🎓</div>
+        <p>No students enrolled in this course yet.</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

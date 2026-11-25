@@ -1,0 +1,88 @@
+{% extends 'base.html' %}
+{% block title %}Timetable{% endblock %}
+{% block page_title %}Timetable{% endblock %}
+{% block page_sub %}Manage class schedules{% endblock %}
+
+{% block sidebar_nav %}
+<div class="nav-section">
+    <div class="nav-section-title">Main</div>
+    <a href="{{ url_for('admin.dashboard') }}" class="nav-link"><span class="icon">🏠</span> Dashboard</a>
+    <a href="{{ url_for('admin.teachers') }}" class="nav-link"><span class="icon">👨‍🏫</span> Teachers</a>
+    <a href="{{ url_for('admin.students') }}" class="nav-link"><span class="icon">👨‍🎓</span> Students</a>
+    <a href="{{ url_for('admin.programs') }}" class="nav-link"><span class="icon">📋</span> Programs & PLOs</a>
+    <a href="{{ url_for('admin.courses') }}" class="nav-link"><span class="icon">📚</span> Courses & CLOs</a>
+    <a href="{{ url_for('admin.timetable') }}" class="nav-link active"><span class="icon">🗓️</span> Timetable</a>
+    <a href="{{ url_for('admin.report') }}" class="nav-link"><span class="icon">📊</span> System Report</a>
+</div>
+{% endblock %}
+
+{% block topbar_actions %}
+<button class="btn btn-primary" onclick="openModal('addSlotModal')">+ Add Slot</button>
+{% endblock %}
+
+{% block content %}
+<div class="card">
+    {% if timetables %}
+    <div class="table-wrap">
+        <table>
+            <thead>
+                <tr><th>Course</th><th>Day</th><th>Time</th><th>Room</th><th>Teacher</th><th>Action</th></tr>
+            </thead>
+            <tbody>
+                {% for slot in timetables %}
+                <tr>
+                    <td><strong style="color:#fff">{{ slot.course.name }}</strong><br><small style="color:rgba(255,255,255,0.35)">{{ slot.course.code }}</small></td>
+                    <td><span class="badge badge-purple">{{ slot.day }}</span></td>
+                    <td>{{ slot.time_slot }}</td>
+                    <td><span class="badge badge-blue">{{ slot.room }}</span></td>
+                    <td>{{ slot.course.teacher.name }}</td>
+                    <td>
+                        <form method="POST" action="{{ url_for('admin.delete_timetable', id=slot.id) }}" onsubmit="return confirm('Delete this slot?');" style="display:inline;">
+                            <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="empty"><div class="empty-icon">🗓️</div><p>No timetable slots yet</p><button class="btn btn-primary" onclick="openModal('addSlotModal')">Add First Slot</button></div>
+    {% endif %}
+</div>
+
+<div class="modal-overlay" id="addSlotModal">
+    <div class="modal">
+        <button class="modal-close" onclick="closeModal('addSlotModal')">✕</button>
+        <div class="modal-title">Add Timetable Slot</div>
+        <form method="POST" action="{{ url_for('admin.add_timetable') }}">
+            <div class="form-group">
+                <label class="form-label">Course</label>
+                <select name="course_id" class="form-control" required>
+                    <option value="">Select course...</option>
+                    {% for course in courses %}
+                    <option value="{{ course.id }}">{{ course.name }} ({{ course.code }})</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Day</label>
+                <select name="day" class="form-control" required>
+                    <option value="">Select day...</option>
+                    <option>Monday</option><option>Tuesday</option><option>Wednesday</option>
+                    <option>Thursday</option><option>Friday</option><option>Saturday</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Time Slot</label>
+                <input type="text" name="time_slot" class="form-control" placeholder="e.g. 08:00 - 09:30" required>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Room</label>
+                <input type="text" name="room" class="form-control" placeholder="e.g. Room 101" required>
+            </div>
+            <button type="submit" class="btn btn-primary" style="width:100%">Add Slot</button>
+        </form>
+    </div>
+</div>
+{% endblock %}

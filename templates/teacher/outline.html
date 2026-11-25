@@ -1,0 +1,78 @@
+{% extends 'base.html' %}
+{% block title %}Course Outline{% endblock %}
+{% block page_title %}Course Outline{% endblock %}
+{% block page_sub %}{{ course.name }} ({{ course.code }}) – Weekly topics mapped to CLOs{% endblock %}
+
+{% block sidebar_nav %}
+<div class="nav-section">
+    <div class="nav-section-title">Main</div>
+    <a href="{{ url_for('teacher.dashboard') }}" class="nav-link"><span class="icon">🏠</span> Dashboard</a>
+    <a href="{{ url_for('teacher.timetable') }}" class="nav-link"><span class="icon">🗓️</span> My Timetable</a>
+</div>
+<div class="nav-section">
+    <div class="nav-section-title">This Course</div>
+    <a href="{{ url_for('teacher.course_detail', course_id=course.id) }}" class="nav-link"><span class="icon">🎯</span> CLOs & Marks</a>
+    <a href="{{ url_for('teacher.outline', course_id=course.id) }}" class="nav-link active"><span class="icon">📖</span> Course Outline</a>
+    <a href="{{ url_for('teacher.report', course_id=course.id) }}" class="nav-link"><span class="icon">📊</span> Attainment Report</a>
+</div>
+{% endblock %}
+
+{% block topbar_actions %}
+<button class="btn btn-primary" onclick="openModal('addWeekModal')">+ Add Week</button>
+{% endblock %}
+
+{% block content %}
+{% if outlines %}
+<div style="display:flex;flex-direction:column;gap:16px;">
+    {% for week in outlines %}
+    <div class="card">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+            <div style="display:flex;gap:16px;align-items:flex-start;">
+                <div style="width:44px;height:44px;border-radius:12px;background:linear-gradient(135deg,#6366f1,#8b5cf6);display:flex;align-items:center;justify-content:center;font-weight:800;color:white;font-size:15px;flex-shrink:0;">{{ week.week_number }}</div>
+                <div>
+                    <div style="font-size:15px;font-weight:700;color:#fff;margin-bottom:6px;">{{ week.topic }}</div>
+                    <div style="font-size:13px;color:rgba(255,255,255,0.5);line-height:1.6;">{{ week.description }}</div>
+                    <div style="margin-top:10px;display:flex;gap:6px;flex-wrap:wrap;">
+                        {% for clo in course.clos %}
+                        <span class="badge badge-purple">{{ clo.clo_code }}</span>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            <form method="POST" action="{{ url_for('teacher.delete_outline', id=week.id) }}" onsubmit="return confirm('Delete this week?');">
+                <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+            </form>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<div class="empty">
+    <div class="empty-icon">📖</div>
+    <p>No weekly outline added yet</p>
+    <button class="btn btn-primary" onclick="openModal('addWeekModal')">Add First Week</button>
+</div>
+{% endif %}
+
+<div class="modal-overlay" id="addWeekModal">
+    <div class="modal">
+        <button class="modal-close" onclick="closeModal('addWeekModal')">✕</button>
+        <div class="modal-title">Add Week to Outline</div>
+        <form method="POST" action="{{ url_for('teacher.add_outline', course_id=course.id) }}">
+            <div class="form-group">
+                <label class="form-label">Week Number</label>
+                <input type="number" name="week_number" class="form-control" placeholder="e.g. 1" min="1" required>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Topic</label>
+                <input type="text" name="topic" class="form-control" placeholder="e.g. Arrays and Linked Lists" required>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Description</label>
+                <textarea name="description" class="form-control" rows="3" placeholder="Brief description of what will be covered..." required></textarea>
+            </div>
+            <button type="submit" class="btn btn-primary" style="width:100%">Add Week</button>
+        </form>
+    </div>
+</div>
+{% endblock %}

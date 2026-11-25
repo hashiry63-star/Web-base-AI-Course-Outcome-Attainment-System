@@ -1,0 +1,86 @@
+{% extends 'base.html' %}
+{% block title %}Student Dashboard{% endblock %}
+{% block page_title %}My Courses{% endblock %}
+{% block page_sub %}Your enrolled courses and attainment overview{% endblock %}
+
+{% block sidebar_nav %}
+<div class="nav-section">
+    <div class="nav-section-title">Main</div>
+    <a href="{{ url_for('student.dashboard') }}" class="nav-link active"><span class="icon">🏠</span> Dashboard</a>
+    <a href="{{ url_for('student.timetable') }}" class="nav-link"><span class="icon">🗓️</span> My Timetable</a>
+    <a href="{{ url_for('student.repeat_risk') }}" class="nav-link"><span class="icon">⚠️</span> Repeat Risk</a>
+</div>
+{% endblock %}
+
+{% block content %}
+{% if course_data %}
+
+<!-- Summary Stats -->
+<div class="stats-grid" style="margin-bottom:28px;">
+    <div class="stat-card">
+        <div class="stat-icon">📚</div>
+        <div class="stat-num">{{ course_data|length }}</div>
+        <div class="stat-label">Enrolled Courses</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon">✅</div>
+        <div class="stat-num">{{ course_data|selectattr('attainment.status','equalto','Clear')|list|length }}</div>
+        <div class="stat-label">Clear</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon">⚠️</div>
+        <div class="stat-num">{{ course_data|selectattr('attainment.status','equalto','At Risk')|list|length }}</div>
+        <div class="stat-label">At Risk</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon">❌</div>
+        <div class="stat-num">{{ course_data|selectattr('attainment.status','equalto','Repeat')|list|length }}</div>
+        <div class="stat-label">Repeat Required</div>
+    </div>
+</div>
+
+<!-- Course Cards -->
+<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:20px;">
+    {% for cd in course_data %}
+    {% set status = cd.attainment.status %}
+    {% set status_gradient = 'linear-gradient(90deg,#10b981,#06b6d4)' if status == 'Clear' else 'linear-gradient(90deg,#f59e0b,#f97316)' if status == 'At Risk' else 'linear-gradient(90deg,#ef4444,#ec4899)' %}
+    <div class="card" style="position:relative;overflow:hidden;">
+        <div style="position:absolute;top:0;left:0;right:0;height:3px;background:{{ status_gradient }};" class="status-bar"></div>
+
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px;">
+            <div>
+                <span class="badge badge-purple" style="margin-bottom:8px;">{{ cd.course.code }}</span>
+                <div style="font-size:16px;font-weight:700;color:#fff;">{{ cd.course.name }}</div>
+                <div style="font-size:12px;color:rgba(255,255,255,0.35);margin-top:4px;">{{ cd.course.semester }} • 👨‍🏫 {{ cd.course.teacher.name }}</div>
+            </div>
+            <div style="text-align:right;">
+                <div style="font-size:26px;font-weight:800;color:#fff;">{{ cd.attainment.percentage }}%</div>
+                <div style="font-size:11px;color:rgba(255,255,255,0.35);">attainment</div>
+            </div>
+        </div>
+
+        <!-- Status Badge -->
+        <div style="margin-bottom:16px;">
+            {% if status == 'Clear' %}
+            <span style="display:inline-flex;align-items:center;gap:6px;background:rgba(16,185,129,0.1);border:1px solid rgba(16,185,129,0.3);color:#6ee7b7;padding:6px 14px;border-radius:20px;font-size:12px;font-weight:700;">✅ Clear – Good Standing</span>
+            {% elif status == 'At Risk' %}
+            <span style="display:inline-flex;align-items:center;gap:6px;background:rgba(245,158,11,0.1);border:1px solid rgba(245,158,11,0.3);color:#fcd34d;padding:6px 14px;border-radius:20px;font-size:12px;font-weight:700;">⚠️ At Risk – Needs Improvement</span>
+            {% elif status == 'Repeat' %}
+            <span style="display:inline-flex;align-items:center;gap:6px;background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.3);color:#fca5a5;padding:6px 14px;border-radius:20px;font-size:12px;font-weight:700;">❌ Must Repeat This Subject</span>
+            {% else %}
+            <span style="display:inline-flex;align-items:center;gap:6px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);color:rgba(255,255,255,0.4);padding:6px 14px;border-radius:20px;font-size:12px;font-weight:700;">No Data Yet</span>
+            {% endif %}
+        </div>
+
+        <a href="{{ url_for('student.course_detail', course_id=cd.course.id) }}" class="btn btn-secondary btn-sm">View Details →</a>
+    </div>
+    {% endfor %}
+</div>
+
+{% else %}
+<div class="empty">
+    <div class="empty-icon">📚</div>
+    <p>You are not enrolled in any courses yet. Contact admin.</p>
+</div>
+{% endif %}
+{% endblock %}

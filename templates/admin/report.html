@@ -1,0 +1,86 @@
+{% extends 'base.html' %}
+{% block title %}System Report{% endblock %}
+{% block page_title %}System Report{% endblock %}
+{% block page_sub %}Institution-wide attainment overview{% endblock %}
+
+{% block sidebar_nav %}
+<div class="nav-section">
+    <div class="nav-section-title">Main</div>
+    <a href="{{ url_for('admin.dashboard') }}" class="nav-link"><span class="icon">🏠</span> Dashboard</a>
+    <a href="{{ url_for('admin.teachers') }}" class="nav-link"><span class="icon">👨‍🏫</span> Teachers</a>
+    <a href="{{ url_for('admin.students') }}" class="nav-link"><span class="icon">👨‍🎓</span> Students</a>
+    <a href="{{ url_for('admin.programs') }}" class="nav-link"><span class="icon">📋</span> Programs & PLOs</a>
+    <a href="{{ url_for('admin.courses') }}" class="nav-link"><span class="icon">📚</span> Courses & CLOs</a>
+    <a href="{{ url_for('admin.timetable') }}" class="nav-link"><span class="icon">🗓️</span> Timetable</a>
+    <a href="{{ url_for('admin.report') }}" class="nav-link active"><span class="icon">📊</span> System Report</a>
+</div>
+{% endblock %}
+
+{% block topbar_actions %}
+<button onclick="window.print()" class="btn btn-primary">🖨 Print Report</button>
+{% endblock %}
+
+{% block content %}
+{% for data in report_data %}
+<div class="card" style="margin-bottom:24px;">
+    <div class="card-header">
+        <div class="card-title">{{ data.program.name }}</div>
+    </div>
+
+    <div style="margin-bottom:20px;">
+        <div style="font-size:12px;font-weight:700;color:rgba(255,255,255,0.4);text-transform:uppercase;letter-spacing:0.8px;margin-bottom:12px;">PLO Attainment</div>
+        <div class="table-wrap">
+            <table>
+                <thead>
+                    <tr><th>PLO</th><th>Description</th><th>Attainment</th><th>Level</th></tr>
+                </thead>
+                <tbody>
+                    {% for plo_id, plo_info in data.plo_data.items() %}
+                    <tr>
+                        <td><span class="badge badge-purple">{{ plo_info.plo.plo_code }}</span></td>
+                        <td>{{ plo_info.plo.description }}</td>
+                        <td><strong style="color:#fff">{{ plo_info.percentage }}%</strong></td>
+                        <td>
+                            {% if plo_info.level == 'Excellent' %}<span class="badge badge-green">{{ plo_info.level }}</span>
+                            {% elif plo_info.level == 'Good' %}<span class="badge badge-blue">{{ plo_info.level }}</span>
+                            {% elif plo_info.level == 'Average' %}<span class="badge badge-yellow">{{ plo_info.level }}</span>
+                            {% elif plo_info.level == 'Poor' %}<span class="badge badge-red">{{ plo_info.level }}</span>
+                            {% else %}<span class="badge badge-red">No Data</span>{% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div>
+        <div style="font-size:12px;font-weight:700;color:rgba(255,255,255,0.4);text-transform:uppercase;letter-spacing:0.8px;margin-bottom:12px;">Course Attainment</div>
+        <div class="table-wrap">
+            <table>
+                <thead>
+                    <tr><th>Course</th><th>Teacher</th><th>Semester</th><th>Attainment</th><th>Level</th></tr>
+                </thead>
+                <tbody>
+                    {% for cd in data.courses %}
+                    <tr>
+                        <td><strong style="color:#fff">{{ cd.course.name }}</strong><br><small style="color:rgba(255,255,255,0.35)">{{ cd.course.code }}</small></td>
+                        <td>{{ cd.course.teacher.name }}</td>
+                        <td><span class="badge badge-purple">{{ cd.course.semester }}</span></td>
+                        <td><strong style="color:#fff">{{ cd.attainment.percentage }}%</strong></td>
+                        <td>
+                            {% if cd.attainment.level == 'Excellent' %}<span class="badge badge-green">{{ cd.attainment.level }}</span>
+                            {% elif cd.attainment.level == 'Good' %}<span class="badge badge-blue">{{ cd.attainment.level }}</span>
+                            {% elif cd.attainment.level == 'Average' %}<span class="badge badge-yellow">{{ cd.attainment.level }}</span>
+                            {% elif cd.attainment.level == 'Poor' %}<span class="badge badge-red">{{ cd.attainment.level }}</span>
+                            {% else %}<span class="badge badge-red">No Data</span>{% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endfor %}
+{% endblock %}

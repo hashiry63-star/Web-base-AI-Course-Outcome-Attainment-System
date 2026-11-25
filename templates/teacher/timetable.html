@@ -1,0 +1,50 @@
+{% extends 'base.html' %}
+{% block title %}My Timetable{% endblock %}
+{% block page_title %}My Timetable{% endblock %}
+{% block page_sub %}Your weekly class schedule{% endblock %}
+
+{% block sidebar_nav %}
+<div class="nav-section">
+    <div class="nav-section-title">Main</div>
+    <a href="{{ url_for('teacher.dashboard') }}" class="nav-link"><span class="icon">🏠</span> Dashboard</a>
+    <a href="{{ url_for('teacher.timetable') }}" class="nav-link active"><span class="icon">🗓️</span> My Timetable</a>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="card">
+    {% set days = ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'] %}
+    {% if slots %}
+    <div class="table-wrap">
+        <table>
+            <thead>
+                <tr><th>Day</th><th>Time</th><th>Course</th><th>Room</th><th>Program</th></tr>
+            </thead>
+            <tbody>
+                {% for day in days %}
+                {% set day_slots = slots|selectattr('day','equalto',day)|list %}
+                {% if day_slots %}
+                {% for slot in day_slots %}
+                <tr>
+                    {% if loop.first %}
+                    <td rowspan="{{ day_slots|length }}"><span class="badge badge-purple">{{ day }}</span></td>
+                    {% endif %}
+                    <td style="color:#fff;font-weight:500;">{{ slot.time_slot }}</td>
+                    <td><strong style="color:#fff;">{{ slot.course.name }}</strong><br><small style="color:rgba(255,255,255,0.35)">{{ slot.course.code }}</small></td>
+                    <td><span class="badge badge-blue">{{ slot.room }}</span></td>
+                    <td style="color:rgba(255,255,255,0.5);">{{ slot.course.program.name }}</td>
+                </tr>
+                {% endfor %}
+                {% endif %}
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="empty">
+        <div class="empty-icon">🗓️</div>
+        <p>No timetable assigned yet. Contact admin.</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
